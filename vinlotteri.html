@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vinlotteri Kalkulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0a06;
+    --surface: #1a1108;
+    --border: #3a2a14;
+    --gold: #c9921a;
+    --gold-light: #e8b84b;
+    --gold-dim: #7a5510;
+    --cream: #f0e6d0;
+    --cream-dim: #9a8a72;
+    --red: #8b1a1a;
+    --red-light: #c94040;
+    --green: #1a5c2a;
+    --green-light: #3a9c50;
+    --text: #e8dcc8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(201,146,26,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 90%, rgba(139,26,26,0.08) 0%, transparent 50%);
+  }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 2px;
+    background: var(--gold);
+  }
+
+  .logo {
+    font-size: 0.65rem;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    font-weight: 900;
+    color: var(--cream);
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 span {
+    color: var(--gold-light);
+  }
+
+  .subtitle {
+    font-size: 0.7rem;
+    color: var(--cream-dim);
+    letter-spacing: 0.15em;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 0.85rem;
+    background: var(--surface);
+    border: none;
+    color: var(--cream-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-right: 1px solid var(--border);
+  }
+
+  .tab:last-child { border-right: none; }
+
+  .tab.active {
+    background: var(--gold);
+    color: var(--bg);
+    font-weight: 500;
+  }
+
+  .tab:hover:not(.active) {
+    background: rgba(201,146,26,0.1);
+    color: var(--cream);
+  }
+
+  /* PANELS */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* INPUT GRID */
+  .input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 480px) {
+    .input-grid { grid-template-columns: 1fr; }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  input[type="number"] {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--cream);
+    font-family: 'DM Mono', monospace;
+    font-size: 1.2rem;
+    padding: 0.7rem 1rem;
+    width: 100%;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  input[type="number"]:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+
+  .hint {
+    font-size: 0.58rem;
+    color: var(--cream-dim);
+    margin-top: -0.1rem;
+  }
+
+  /* SLIDER */
+  .slider-section {
+    margin-bottom: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1rem;
+  }
+
+  .slider-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .slider-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: var(--cream);
+  }
+
+  .slider-value span {
+    font-size: 0.7rem;
+    color: var(--cream-dim);
+    font-family: 'DM Mono', monospace;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+  }
+
+  /* RESULTS */
+  .results {
+    display: none;
+    animation: fadeUp 0.4s ease forwards;
+  }
+
+  .results.visible { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-title {
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 1rem;
+  }
+
+  /* STAT CARDS */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 480px) {
+    .stat-row { grid-template-columns: 1fr 1fr; }
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .stat-card.highlight {
+    border-color: var(--gold);
+    background: rgba(201,146,26,0.06);
+  }
+
+  .stat-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    color: var(--cream);
+    display: block;
+    line-height: 1.1;
+    margin-bottom: 0.3rem;
+  }
+
+  .stat-val.pos { color: var(--green-light); }
+  .stat-val.neg { color: var(--red-light); }
+  .stat-val.gold { color: var(--gold-light); }
+
+  .stat-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--cream-dim);
+  }
+
+  /* RECOMMENDATION BOX */
+  .recommendation {
+    border: 1px solid var(--gold);
+    border-radius: 4px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    background: rgba(201,146,26,0.05);
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .rec-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  .rec-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    color: var(--gold-light);
+    margin-bottom: 0.25rem;
+  }
+
+  .rec-body {
+    font-size: 0.68rem;
+    color: var(--cream-dim);
+    line-height: 1.6;
+  }
+
+  /* TABLE */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.7rem;
+  }
+
+  thead tr {
+    background: rgba(201,146,26,0.08);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 0.65rem 0.85rem;
+    text-align: right;
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    font-weight: 400;
+  }
+
+  th:first-child { text-align: center; }
+
+  td {
+    padding: 0.55rem 0.85rem;
+    text-align: right;
+    border-bottom: 1px solid rgba(58,42,20,0.5);
+    color: var(--cream-dim);
+    font-size: 0.72rem;
+  }
+
+  td:first-child {
+    text-align: center;
+    color: var(--cream);
+    font-weight: 500;
+  }
+
+  tr.optimal {
+    background: rgba(201,146,26,0.07);
+  }
+
+  tr.optimal td {
+    color: var(--cream);
+  }
+
+  tr.optimal td:first-child {
+    color: var(--gold-light);
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  .badge {
+    display: inline-block;
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    text-transform: uppercase;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+
+  .badge-gold {
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  .badge-green {
+    background: var(--green);
+    color: var(--green-light);
+    border: 1px solid var(--green-light);
+  }
+
+  .badge-red {
+    background: rgba(139,26,26,0.3);
+    color: var(--red-light);
+    border: 1px solid var(--red-light);
+  }
+
+  /* DIVIDER */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2rem 0;
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">Jobbens vinlotteri</div>
+    <h1>Lodd<span>kalkulator</span></h1>
+    <div class="subtitle">Optimal strategi for ukentlig vinlotteri</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('before')">Før salg</button>
+    <button class="tab" onclick="switchTab('after')">Etter salg</button>
+  </div>
+
+  <!-- PANEL: FØR SALG -->
+  <div class="panel active" id="panel-before">
+    <div class="input-grid">
+      <div class="field">
+        <label>Maks antall lodd</label>
+        <input type="number" id="b-max-lodd" value="75" min="1" max="500" oninput="calcBefore()">
+        <div class="hint">Totalt tilgjengelig denne uken</div>
+      </div>
+      <div class="field">
+        <label>Antall viner (premier)</label>
+        <input type="number" id="b-viner" value="5" min="1" max="50" oninput="calcBefore()">
+      </div>
+      <div class="field">
+        <label>Pris per lodd (kr)</label>
+        <input type="number" id="b-pris" value="15" min="1" oninput="calcBefore()">
+      </div>
+      <div class="field">
+        <label>Verdi per vin (kr)</label>
+        <input type="number" id="b-verdi" value="200" min="1" oninput="calcBefore()">
+      </div>
+    </div>
+
+    <div class="slider-section">
+      <div class="slider-header">
+        <div class="slider-label">Antall lodd du vurderer å kjøpe</div>
+        <div class="slider-value" id="b-slider-display">1 <span>lodd</span></div>
+      </div>
+      <input type="range" id="b-slider" min="1" max="75" value="1" oninput="updateSlider('b')">
+    </div>
+
+    <div class="results" id="b-results"></div>
+  </div>
+
+  <!-- PANEL: ETTER SALG -->
+  <div class="panel" id="panel-after">
+    <div class="input-grid">
+      <div class="field">
+        <label>Faktisk solgte lodd</label>
+        <input type="number" id="a-solgte" value="60" min="1" max="500" oninput="calcAfter()">
+        <div class="hint">Faktisk antall denne uken</div>
+      </div>
+      <div class="field">
+        <label>Antall viner (premier)</label>
+        <input type="number" id="a-viner" value="5" min="1" max="50" oninput="calcAfter()">
+      </div>
+      <div class="field">
+        <label>Pris per lodd (kr)</label>
+        <input type="number" id="a-pris" value="15" min="1" oninput="calcAfter()">
+      </div>
+      <div class="field">
+        <label>Verdi per vin (kr)</label>
+        <input type="number" id="a-verdi" value="200" min="1" oninput="calcAfter()">
+      </div>
+    </div>
+
+    <div class="slider-section">
+      <div class="slider-header">
+        <div class="slider-label">Antall lodd du vurderer å kjøpe</div>
+        <div class="slider-value" id="a-slider-display">1 <span>lodd</span></div>
+      </div>
+      <input type="range" id="a-slider" min="1" max="60" value="1" oninput="updateSlider('a')">
+    </div>
+
+    <div class="results" id="a-results"></div>
+  </div>
+
+  <footer>Beregningene forutsetter uniform trekning &bull; Kun til intern moro</footer>
+</div>
+
+<script>
+// ---- MATH ----
+// P(vinner minst 1 av W viner) når du har k lodd av N totalt
+// Hypergeometrisk: 1 - P(ingen av dine k lodd treffer noen av W vinnerlodd)
+// P(ingen treffer) = C(N-k, W) / C(N, W)  -- forutsatt k <= N-W
+function pVinner(k, N, W) {
+  if (k <= 0) return 0;
+  if (k > N) k = N;
+  W = Math.min(W, N);
+  // P(ingen av de W trukne loddene er dine)
+  // = produkt((N-k-i)/(N-i)) for i=0..W-1
+  let p_ingen = 1;
+  for (let i = 0; i < W; i++) {
+    if (N - i === 0) break;
+    p_ingen *= Math.max(0, (N - k - i)) / (N - i);
+  }
+  return 1 - p_ingen;
+}
+
+function marginalVerdi(k, N, W, vinVerdi, loddPris) {
+  const p = pVinner(k, N, W);
+  const ev = p * vinVerdi;
+  const kostnad = k * loddPris;
+  const netto = ev - kostnad;
+  const evPerLodd = ev / k;
+  return { k, p, ev, kostnad, netto, evPerLodd };
+}
+
+function findOptimal(N, W, vinVerdi, loddPris) {
+  let bestNetto = -Infinity;
+  let bestK = 1;
+  const maxK = Math.min(N, 20); // praktisk maks
+  for (let k = 1; k <= maxK; k++) {
+    const { netto } = marginalVerdi(k, N, W, vinVerdi, loddPris);
+    if (netto > bestNetto) {
+      bestNetto = netto;
+      bestK = k;
+    }
+  }
+  return bestK;
+}
+
+function fmt(n, decimals=1) {
+  return n.toFixed(decimals).replace('.', ',');
+}
+
+function pct(p) {
+  return fmt(p * 100, 1) + '%';
+}
+
+function renderResults(containerId, N, W, vinVerdi, loddPris, chosenK) {
+  const container = document.getElementById(containerId);
+  const optimal = findOptimal(N, W, vinVerdi, loddPris);
+  const chosen = marginalVerdi(chosenK, N, W, vinVerdi, loddPris);
+  const opt = marginalVerdi(optimal, N, W, vinVerdi, loddPris);
+  const utbetalingsrate = (W * vinVerdi) / (N * loddPris) * 100;
+
+  // Recommendation text
+  let recIcon, recTitle, recBody;
+  const nettoPerLodd = chosen.netto / chosenK;
+
+  if (chosenK === optimal) {
+    recIcon = '🍷';
+    recTitle = `${chosenK} lodd — optimalt valg`;
+    recBody = `Du er på sweet spot. Forventet tap er kun ${fmt(Math.abs(chosen.netto))} kr for ${pct(chosen.p)} vinnersannsynlighet.`;
+  } else if (chosenK < optimal) {
+    recIcon = '📈';
+    recTitle = `${chosenK} lodd — vurder ${optimal} lodd`;
+    recBody = `Kjøper du ${optimal} lodd i stedet, øker sannsynligheten din fra ${pct(chosen.p)} til ${pct(opt.p)} for bare ${fmt(opt.kostnad - chosen.kostnad)} kr ekstra. Netto forventet tap forbedres fra ${fmt(Math.abs(chosen.netto))} til ${fmt(Math.abs(opt.netto))} kr.`;
+  } else {
+    recIcon = '⚠️';
+    recTitle = `${chosenK} lodd — over optimalt`;
+    recBody = `Optimal mengde er ${optimal} lodd. Utover det betaler du for sannsynlighet du ikke kan utnytte — siden du kun kan vinne én vin. Forventet tap øker fra ${fmt(Math.abs(opt.netto))} kr til ${fmt(Math.abs(chosen.netto))} kr.`;
+  }
+
+  // Table rows
+  const tableMax = Math.min(N, 10);
+  let rows = '';
+  for (let k = 1; k <= tableMax; k++) {
+    const d = marginalVerdi(k, N, W, vinVerdi, loddPris);
+    const isOpt = k === optimal;
+    const isChosen = k === chosenK;
+    const nettoClass = d.netto >= 0 ? 'pos' : 'neg';
+    let badge = '';
+    if (isOpt && isChosen) badge = '<span class="badge badge-gold">Valgt & Optimal</span>';
+    else if (isOpt) badge = '<span class="badge badge-gold">Optimal</span>';
+    else if (isChosen) badge = '<span class="badge badge-green">Valgt</span>';
+
+    rows += `
+      <tr class="${isOpt ? 'optimal' : ''}">
+        <td>${k}${badge}</td>
+        <td>${pct(d.p)}</td>
+        <td>${fmt(d.ev)} kr</td>
+        <td>${fmt(d.kostnad)} kr</td>
+        <td class="${nettoClass}">${d.netto >= 0 ? '+' : ''}${fmt(d.netto)} kr</td>
+      </tr>`;
+  }
+
+  container.innerHTML = `
+    <div class="section-title">Nøkkeltall — ${chosenK} lodd</div>
+    <div class="stat-row">
+      <div class="stat-card highlight">
+        <span class="stat-val gold">${pct(chosen.p)}</span>
+        <div class="stat-label">Vinnersannsynlighet</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val">${fmt(chosen.ev)} kr</span>
+        <div class="stat-label">Forventet verdi</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val ${chosen.netto >= 0 ? 'pos' : 'neg'}">${chosen.netto >= 0 ? '+' : ''}${fmt(chosen.netto)} kr</span>
+        <div class="stat-label">Forventet netto</div>
+      </div>
+    </div>
+
+    <div class="recommendation">
+      <div class="rec-icon">${recIcon}</div>
+      <div>
+        <div class="rec-title">${recTitle}</div>
+        <div class="rec-body">${recBody}</div>
+      </div>
+    </div>
+
+    <div class="section-title">Sammenligning per antall lodd (1–${tableMax})</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Lodd</th>
+            <th>Sannsynlighet</th>
+            <th>Forv. verdi</th>
+            <th>Kostnad</th>
+            <th>Netto</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <span class="stat-val">${fmt(utbetalingsrate, 0)}%</span>
+        <div class="stat-label">Utbetalingsrate</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val">${W}</span>
+        <div class="stat-label">Vinnere totalt</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val">${N}</span>
+        <div class="stat-label">Lodd i spill</div>
+      </div>
+    </div>
+  `;
+
+  container.classList.add('visible');
+}
+
+// ---- TABS ----
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && tab === 'before') || (i === 1 && tab === 'after'));
+  });
+  document.getElementById('panel-before').classList.toggle('active', tab === 'before');
+  document.getElementById('panel-after').classList.toggle('active', tab === 'after');
+}
+
+// ---- SLIDERS ----
+function updateSlider(prefix) {
+  const slider = document.getElementById(prefix + '-slider');
+  const val = parseInt(slider.value);
+  document.getElementById(prefix + '-slider-display').innerHTML = `${val} <span>lodd</span>`;
+  if (prefix === 'b') calcBefore();
+  else calcAfter();
+}
+
+// ---- CALC ----
+function calcBefore() {
+  const N = parseInt(document.getElementById('b-max-lodd').value) || 75;
+  const W = parseInt(document.getElementById('b-viner').value) || 5;
+  const pris = parseFloat(document.getElementById('b-pris').value) || 15;
+  const verdi = parseFloat(document.getElementById('b-verdi').value) || 200;
+  const slider = document.getElementById('b-slider');
+  slider.max = Math.min(N, 20);
+  const k = Math.min(parseInt(slider.value) || 1, N);
+  slider.value = k;
+  document.getElementById('b-slider-display').innerHTML = `${k} <span>lodd</span>`;
+  renderResults('b-results', N, W, verdi, pris, k);
+}
+
+function calcAfter() {
+  const N = parseInt(document.getElementById('a-solgte').value) || 60;
+  const W = parseInt(document.getElementById('a-viner').value) || 5;
+  const pris = parseFloat(document.getElementById('a-pris').value) || 15;
+  const verdi = parseFloat(document.getElementById('a-verdi').value) || 200;
+  const slider = document.getElementById('a-slider');
+  slider.max = Math.min(N, 20);
+  const k = Math.min(parseInt(slider.value) || 1, N);
+  slider.value = k;
+  document.getElementById('a-slider-display').innerHTML = `${k} <span>lodd</span>`;
+  renderResults('a-results', N, W, verdi, pris, k);
+}
+
+// Init
+calcBefore();
+calcAfter();
+</script>
+</body>
+</html>
